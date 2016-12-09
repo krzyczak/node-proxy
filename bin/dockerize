@@ -1,0 +1,5 @@
+#!/bin/bash
+./bin/docker_build
+./bin/docker_run
+
+exit 0

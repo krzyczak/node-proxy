@@ -1,0 +1,4 @@
+#!/bin/bash
+docker build -t swift-proxy .
+
+exit 0

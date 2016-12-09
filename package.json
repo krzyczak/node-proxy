@@ -1,0 +1,30 @@
+{
+  "name": "swift-proxy",
+  "version": "1.0.0",
+  "description": "Simple proxy server for OpenStack Swift storage",
+  "main": "./app/server.js",
+  "scripts": {
+    "test": "eslint ./app",
+    "start": "node ./app/server.js"
+  },
+  "repository": {
+    "type" : "git",
+    "url" : "git@github.com:thebigsofa/openstack-proxy.git"
+  },
+  "author": "Krzysztof Kaczmarczyk",
+  "license": "MIT",
+  "dependencies": [
+    "fs",
+    "pkgcloud",
+    "https",
+    "http-proxy",
+    "express",
+    "express-logger",
+    "winston",
+    "errorhandler",
+    "cors",
+    "connect-busboy",
+    "dotenv",
+    "crypto"
+  ]
+}

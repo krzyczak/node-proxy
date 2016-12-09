@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# --pid-limit - defends the machine from resurce exhaustion attack, eg. shell bomb
+# --read-only - pretty stratforward. File system is readonly.
+# Directories requiring read access are mounted as tmpfs
+# Also write access is given to the directory mounted with -v
+
+docker run -dit \
+  --security-opt=no-new-privileges \
+  --pids-limit 100 \
+  --read-only \
+  --tmpfs /run --tmpfs /tmp \
+  --tmpfs /home/thebigsofa/.pm2 \
+  -v `pwd`:/home/thebigsofa/src/app \
+  -p 8080:8080 \
+  -p 443:8443 \
+  -p 80:8080 \
+  --name os-proxy \
+  swift-proxy
+
+exit 0

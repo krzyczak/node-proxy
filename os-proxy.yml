@@ -1,0 +1,11 @@
+apps:
+  - script: "./app/server.js"
+    name: os-proxy
+    instances: 4
+    exec_mode: cluster
+    env:
+      NODE_ENV: development
+      watch: "./app"
+    env_production:
+      watch: false
+      NODE_ENV: production
