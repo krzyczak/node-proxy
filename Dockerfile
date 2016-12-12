@@ -1,11 +1,16 @@
-FROM node:7.2.0
+FROM node:7.2.1-alpine
 
 EXPOSE 443 8080 80 43554
 
 RUN npm install pm2 -g
 
 # Add the user and run everything else as non root
-RUN useradd -ms /bin/bash thebigsofa
+# If default image is used instead of Alpine:
+# RUN useradd -ms /bin/bash thebigsofa
+
+# If Alpine image is used:
+RUN adduser -D thebigsofa
+
 RUN mkdir -p /home/thebigsofa/src/app
 WORKDIR /home/thebigsofa/src/app
 COPY package.json .
