@@ -3,6 +3,7 @@ lock "3.7.0"
 
 set :application, "openstack-proxy"
 set :repo_url, "git@github.com:thebigsofa/openstack-proxy.git"
+set :docker_mount_dir, 'latest'
 
 # Default branch is :master
 # ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
@@ -18,7 +19,7 @@ set :repo_url, "git@github.com:thebigsofa/openstack-proxy.git"
 # set :format_options, command_output: true, log_file: "log/capistrano.log", color: :auto, truncate: :auto
 
 # Default value for :pty is false
-# set :pty, true
+# set :pty, false
 
 # Default value for :linked_files is []
 # append :linked_files, "config/database.yml", "config/secrets.yml"
@@ -33,48 +34,39 @@ set :repo_url, "git@github.com:thebigsofa/openstack-proxy.git"
 # set :keep_releases, 5
 
 namespace :deploy do
-  task :copy_ssl_and_env do
+  after :finished, :finalize
+
+  task :finalize do
     on roles(:proxy), in: :parallel do |host|
       within("#{fetch(:deploy_to)}/current") do
+        if capture('echo $(sudo docker ps -aq)').strip.empty?
+          execute :sudo, 'docker build -t swift-proxy .'
+          execute :sudo, "docker run -dit --security-opt=no-new-privileges --pids-limit 100 --read-only --tmpfs /run --tmpfs /tmp --tmpfs /home/thebigsofa/.pm2 --tmpfs /home/thebigsofa/.npm -v #{fetch(:deploy_to)}/#{fetch(:docker_mount_dir)}:/home/thebigsofa/src/app -p 8080:8080 -p 443:8443 -p 80:8080 --name os-proxy swift-proxy"
+        end
+      end
+
+      within("#{fetch(:deploy_to)}") do
+        execute :mkdir, "-p #{fetch(:deploy_to)}/#{fetch(:docker_mount_dir)}"
+      end
+
+      within("#{fetch(:deploy_to)}/#{fetch(:docker_mount_dir)}") do
         execute :cp, "/home/#{fetch(:user)}/ssl_file.crt", "ssl_file.crt"
         execute :cp, "/home/#{fetch(:user)}/ssl_file.key", "ssl_file.key"
         execute :cp, "/home/#{fetch(:user)}/swift-proxy-env", ".env"
-        execute :mkdir, 'logs'
+
+        execute :mkdir, '-p logs'
+        execute :mkdir, '-p node_modules'
+
         execute :chmod, '777', 'logs'
-      end
-    end
-  end
+        execute :chmod, '777', 'node_modules'
 
-  task :finalize do
-    invoke 'deploy:copy_ssl_and_env'
-    invoke 'docker:build'
-    invoke 'docker:restart'
-  end
+        execute "mkdir -p #{fetch(:deploy_to)}/#{fetch(:docker_mount_dir)}"
+        execute "cp -a #{fetch(:deploy_to)}/current/. #{fetch(:deploy_to)}/#{fetch(:docker_mount_dir)}/."
 
-  after :finished, :finalize
-end
-
-namespace :docker do
-  task :build do
-    on roles(:proxy), in: :parallel do |host|
-      within("#{fetch(:deploy_to)}/current") do
-        # execute :sudo, './bin/docker_build'
-        execute :sudo, 'docker build -t swift-proxy .'
-      end
-    end
-  end
-
-  task :restart do
-    on roles(:proxy), in: :parallel do |host|
-      within("#{fetch(:deploy_to)}/current") do
-        # execute :sudo, './bin/docker_run'
-        execute <<-EOCMD
-          if [[ -n $(sudo docker ps -aq) ]]
-            then sudo docker rm -f $(sudo docker ps -aq)
-            echo "killed dockers"
-          fi
-        EOCMD
-        execute :sudo, 'docker run -dit --security-opt=no-new-privileges --pids-limit 100 --read-only --tmpfs /run --tmpfs /tmp --tmpfs /home/thebigsofa/.pm2 -v `pwd`:/home/thebigsofa/src/app -p 8080:8080 -p 443:8443 -p 80:8080 --name os-proxy swift-proxy'
+        # execute :sudo, :docker, 'exec os-proxy npm install --silent'
+        execute :sudo, :docker, 'exec os-proxy npm install'
+        # execute :sudo, 'docker exec -it os-proxy pm2 reload --env production os-proxy.yml'
+        execute :sudo, 'docker exec os-proxy pm2 reload --env production os-proxy.yml'
       end
     end
   end

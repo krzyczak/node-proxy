@@ -20,12 +20,13 @@ Next run the app. There are two modes available, ie.
 Standalone:
 ```bash
 $ npm install
-$ npm start
+$ NODE_ENV=<production|development> npm start
 ```
 
 In a Docker container:
 ```bash
 $ ./bin/dockerize
+$ docker exec -ti os-proxy pm2 reload --env <production|development> os-proxy.yml'
 ```
 
 You can now connect to docker shell by running:
@@ -35,10 +36,10 @@ $ ./bin/shell_to_docker
 
 Inside docker (or when running without docker):
 
-1. ```bash $ pm2 status``` - shows status of running applications
-2. ```bash $ pm2 reload <app-name|all>``` - reloads selected app or all apps
-3. ```bash $ pm2 stop <app-name|all>``` - stops selected app or all apps
-4. ```bash $ npm test``` - runs test script dfined in package.json
+1. ```$ pm2 status``` - shows status of running applications
+2. ```$ pm2 reload <app-name|all>``` - reloads selected app or all apps
+3. ```$ pm2 stop <app-name|all>``` - stops selected app or all apps
+4. ```$ npm test``` - runs test script dfined in package.json
 
 # TODO
 - Add some file validation?

@@ -9,8 +9,10 @@ docker run -dit \
   --security-opt=no-new-privileges \
   --pids-limit 100 \
   --read-only \
-  --tmpfs /run --tmpfs /tmp \
+  --tmpfs /run \
+  --tmpfs /tmp \
   --tmpfs /home/thebigsofa/.pm2 \
+  --tmpfs /home/thebigsofa/.npm \
   -v `pwd`:/home/thebigsofa/src/app \
   -p 8080:8080 \
   -p 443:8443 \
