@@ -44,7 +44,7 @@ var validateSignature = function(req, res, next) {
   var expires = req.query.expires || req.params.expires;
   var signature = req.query.signature || req.params.signature;
 
-  var data = req.method + "\n" + expires + "\n" + req.params.key;
+  var data = req.method + "\n" + expires + "\n" + req.params.container_name + "/" + req.params.key;
   var newSignature = crypto.createHmac("sha256", config.signed_url_secret).update(data).digest("hex");
   var timeLeft = parseInt(expires) - (parseInt(new Date().getTime() / 1000));
 
