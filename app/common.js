@@ -7,6 +7,7 @@ exports.config = function() {
 
   require("dotenv").config();
   var settings = {
+    aesSecret: "password",
     swift: {
       provider: process.env.OS_PROVIDER,
       keystoneAuthVersion: process.env.OS_AUTH_VERSION,

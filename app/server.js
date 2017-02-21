@@ -37,7 +37,10 @@ app.get("/status", function(req, res, next) {
 app.get("/os/:container_name/:key(*)", function(req, res, next) {
   req.url = req.url.replace(config.proxy.source_prefix, config.proxy.target_prefix);
   winston.info("PROXING " + req.url + " to " + config.proxy.target + "/" + config.proxy.target_prefix);
-  swiftReverseProxy.web(req, res, { target: config.proxy.target });
+  // swiftReverseProxy.web(req, res, { target: config.proxy.target });
+  var client = pkgcloud.storage.createClient(config.swift);
+  var aes = crypto.createDecipher('aes-256-cbc', config.aesSecret);
+  client.download({ container: req.params.container_name, remote: req.params.key }).pipe(aes).pipe(res);
 });
 
 var validateSignature = function(req, res, next) {
@@ -82,7 +85,10 @@ var uploadFile = function(req, res, next) {
   } else {
     // eg. request is run like `curl -XPUT -F "file=@file_name" URL`, which encodes it as `application/x-www-urlform-encoded`
     req.busboy.on("file", function(name, fileStrem, filename, encoding, mimetype) {
-      fileStrem.pipe(writeStream);
+      // fileStrem.pipe(writeStream);
+      console.log("\n\n\n ============== BUSBOY ================ \n\n\n")
+      var aes = crypto.createCipher('aes-256-cbc', config.aesSecret);
+      fileStrem.pipe(aes).pipe(writeStream);
     });
     req.pipe(req.busboy);
   }
